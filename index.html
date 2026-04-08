@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>\u0411\u0440\u0435\u0439\u043d\u0428\u043e\u043a \u2014 \u041a\u0432\u0438\u0437</title>
+  <title>БрейнШок — Квиз</title>
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -232,4 +232,435 @@
 
     .option.correct {
       border-color: var(--correct);
-      background: rgba(45,
+      background: rgba(45,221,138,0.08);
+      animation: pulse-correct 0.4s ease;
+    }
+    .option.correct .option-letter {
+      background: var(--correct);
+      color: #0b0c10;
+    }
+
+    .option.wrong {
+      border-color: var(--wrong);
+      background: rgba(255,78,106,0.08);
+      animation: shake 0.4s ease;
+    }
+    .option.wrong .option-letter {
+      background: var(--wrong);
+      color: #fff;
+    }
+
+    .option:disabled { cursor: default; }
+
+    /* Fun fact reveal */
+    .funfact {
+      margin-top: 20px;
+      padding: 16px 18px;
+      background: rgba(240,224,64,0.06);
+      border: 1px solid rgba(240,224,64,0.2);
+      border-radius: 14px;
+      font-size: 13px;
+      color: #bbbbd0;
+      line-height: 1.6;
+      animation: fadein 0.4s ease;
+      display: none;
+    }
+
+    .funfact.show { display: block; }
+    .funfact strong { color: var(--accent); }
+
+    /* Next button */
+    .btn-next {
+      margin-top: 24px;
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      color: #0b0c10;
+      border: none;
+      border-radius: 14px;
+      font-family: 'Unbounded', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: all 0.2s ease;
+      display: none;
+    }
+
+    .btn-next:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(240,224,64,0.3);
+    }
+
+    .btn-next.show { display: block; animation: fadein 0.3s ease; }
+
+    /* Result screen */
+    #result-screen {
+      display: none;
+      text-align: center;
+      animation: fadein 0.6s ease;
+    }
+
+    #result-screen.show { display: block; }
+    #quiz-screen.hide { display: none; }
+
+    .result-emoji {
+      font-size: 72px;
+      line-height: 1;
+      margin-bottom: 16px;
+      animation: pop 0.5s cubic-bezier(0.3,1.6,0.5,1) both;
+    }
+
+    .result-title {
+      font-family: 'Unbounded', sans-serif;
+      font-size: clamp(24px, 5vw, 36px);
+      font-weight: 900;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .result-sub {
+      color: var(--muted);
+      font-size: 15px;
+      margin-bottom: 32px;
+    }
+
+    .result-score {
+      font-family: 'Unbounded', sans-serif;
+      font-size: clamp(48px, 12vw, 80px);
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .result-score span { color: var(--accent); }
+
+    .result-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 40px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .btn-restart {
+      padding: 16px 40px;
+      background: var(--accent);
+      color: #0b0c10;
+      border: none;
+      border-radius: 14px;
+      font-family: 'Unbounded', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: all 0.2s ease;
+    }
+
+    .btn-restart:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(240,224,64,0.3);
+    }
+
+    /* Animations */
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadedown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-6px); }
+      75%      { transform: translateX(6px); }
+    }
+
+    @keyframes pulse-correct {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes pop {
+      from { transform: scale(0.5); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    /* Confetti particle (JS generated) */
+    .confetti-piece {
+      position: fixed;
+      width: 8px; height: 8px;
+      top: -10px;
+      border-radius: 2px;
+      animation: confetti-fall linear forwards;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    @keyframes confetti-fall {
+      to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="score-badge" id="score-badge">Очки: <span id="score-display">0</span></div>
+
+<div class="wrapper">
+  <header>
+    <div class="logo">БРЕЙН<span>ШОК</span></div>
+    <div class="subtitle">квиз · интересные факты</div>
+  </header>
+
+  <!-- Quiz screen -->
+  <div id="quiz-screen">
+    <div class="progress-label">
+      Вопрос <span id="q-num">1</span> из <span id="q-total">10</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:10%"></div>
+    </div>
+
+    <div class="card" id="quiz-card">
+      <div class="category-tag" id="q-category">Наука</div>
+      <div class="question" id="q-text">Загрузка...</div>
+      <div class="options" id="options-grid"></div>
+      <div class="funfact" id="funfact"></div>
+      <button class="btn-next" id="btn-next" onclick="nextQuestion()">Следующий вопрос →</button>
+    </div>
+  </div>
+
+  <!-- Result screen -->
+  <div id="result-screen">
+    <div class="result-emoji" id="result-emoji">🧠</div>
+    <div class="result-title" id="result-title">Отлично!</div>
+    <div class="result-sub" id="result-sub">Ты настоящий эрудит</div>
+    <div class="result-score"><span id="final-score">0</span>/<span id="final-total">10</span></div>
+    <div class="result-label">правильных ответов</div>
+    <button class="btn-restart" onclick="restartQuiz()">Пройти ещё раз ↺</button>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    category: "Физика",
+    question: "Если бы весь пустой пространство удалить из атомов всего человечества, во что уместились бы 8 миллиардов человек?",
+    options: ["В куб размером с Луну", "В кусок сахара", "В футбольный мяч", "В горошину"],
+    correct: 1,
+    fact: "Атом почти полностью пуст — ядро занимает около <strong>0.00001%</strong> его объёма. Если убрать всё пустое пространство, всё человечество действительно уместится примерно в кусочек сахара!"
+  },
+  {
+    category: "Биология",
+    question: "Сколько времени сигнал от нейрона к нейрону преодолевает в мозге человека?",
+    options: ["1 секунда", "0.1 миллисекунды", "5 минут", "1 микросекунда"],
+    correct: 1,
+    fact: "Нейронные сигналы перемещаются со скоростью около <strong>120 м/с</strong>, а синаптическая передача занимает всего <strong>0.1–1 мс</strong>. Именно такая скорость позволяет нам реагировать молниеносно."
+  },
+  {
+    category: "Математика",
+    question: "Сколько раз нужно сложить лист бумаги, чтобы он достиг Луны?",
+    options: ["Около 100 раз", "Около 42 раз", "Около 1000 раз", "Это невозможно"],
+    correct: 1,
+    fact: "Благодаря экспоненциальному росту уже на <strong>42-м сложении</strong> толщина листа бумаги (~0.1 мм) превысит расстояние до Луны (~384 000 км). 2⁴² × 0.1 мм ≈ 440 000 км!"
+  },
+  {
+    category: "Космос",
+    question: "Что произойдёт, если вы окажетесь в открытом космосе без скафандра?",
+    options: ["Взорвётесь через 1 секунду", "Замёрзнете мгновенно", "Потеряете сознание примерно через 15 секунд", "Ничего особенного"],
+    correct: 2,
+    fact: "Вопреки кино, вы <strong>не взорвётесь</strong> и не замёрзнете мгновенно — кожа достаточно прочная. Но кислород покинет лёгкие, и вы потеряете сознание примерно через <strong>15 секунд</strong>. Смерть наступает через 1–2 минуты."
+  },
+  {
+    category: "История",
+    question: "Оксфордский университет старше, чем...",
+    options: ["Великая Китайская стена", "Государство ацтеков", "Пирамида Хеопса", "Парфенон"],
+    correct: 1,
+    fact: "Оксфорд основан около <strong>1096 года</strong>, а государство ацтеков — примерно в <strong>1428 году</strong>. Когда ацтеки только строили Теночтитлан, в Оксфорде уже учились несколько поколений студентов!"
+  },
+  {
+    category: "Химия",
+    question: "Почему небо голубое, а закат оранжевый и красный?",
+    options: ["Атмосфера поглощает красный цвет", "Синий свет рассеивается сильнее — он рассеян по всему небу", "Солнечный свет сам по себе голубой", "Из-за отражения океанов"],
+    correct: 1,
+    fact: "Эффект Рэлея: синий свет имеет более короткую волну и рассеивается атмосферой в <strong>~10 раз сильнее</strong>, чем красный. На закате свет проходит длинный путь сквозь атмосферу — синий рассеивается, а красный и оранжевый доходят до нас."
+  },
+  {
+    category: "Биология",
+    question: "Сколько бактерий живёт в теле человека (по количеству клеток)?",
+    options: ["В 10 раз больше, чем клеток тела", "Примерно столько же, сколько клеток тела", "В 100 раз меньше", "Буквально единицы"],
+    correct: 1,
+    fact: "По современным данным, соотношение бактерий к клеткам тела составляет примерно <strong>1:1</strong> — около 38 триллионов бактерий против 30 триллионов клеток. Старый миф о «10:1» был пересмотрен в 2016 году."
+  },
+  {
+    category: "Физика",
+    question: "Почему время идёт медленнее на вершине горы, чем у моря?",
+    options: ["Это невозможно — время везде одинаково", "Из-за гравитации: чем дальше от массы, тем быстрее время", "Из-за холода и давления", "Из-за вращения Земли"],
+    correct: 1,
+    fact: "Общая теория относительности Эйнштейна: гравитация <strong>замедляет время</strong>. GPS-спутники на высоте летят быстрее и дальше от Земли — их часы уходят вперёд на ~45 мкс/день, и это надо постоянно корректировать!"
+  },
+  {
+    category: "Психология",
+    question: "Какой эффект мозга заставляет нас запоминать первое и последнее в списке лучше, чем середину?",
+    options: ["Эффект прайминга", "Эффект последовательной позиции (позиционный эффект)", "Эффект Барнума", "Когнитивный диссонанс"],
+    correct: 1,
+    fact: "Это <strong>эффект последовательной позиции</strong>: мозг лучше кодирует начало (эффект первичности) и конец (эффект новизны) последовательности. Именно поэтому выступающим советуют начинать и заканчивать ярко."
+  },
+  {
+    category: "Природа",
+    question: "Осьминоги имеют три сердца. Что происходит с двумя из них во время плавания?",
+    options: ["Бьются вдвое быстрее", "Временно останавливаются", "Сливаются в одно", "Меняются местами"],
+    correct: 1,
+    fact: "У осьминогов <strong>три сердца</strong>: одно системное и два жаберных. Во время плавания жаберные сердца <strong>временно останавливаются</strong> — поэтому осьминоги предпочитают ползать, а не плыть: плавание их быстро утомляет."
+  }
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+let shuffledQuestions = [];
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function startQuiz() {
+  shuffledQuestions = shuffle(QUESTIONS);
+  current = 0; score = 0;
+  document.getElementById('score-display').textContent = 0;
+  document.getElementById('q-total').textContent = shuffledQuestions.length;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = shuffledQuestions[current];
+  const num = current + 1;
+  const total = shuffledQuestions.length;
+
+  document.getElementById('q-num').textContent = num;
+  document.getElementById('progress-fill').style.width = (num / total * 100) + '%';
+  document.getElementById('q-category').textContent = q.category;
+  document.getElementById('q-text').textContent = q.question;
+
+  const ff = document.getElementById('funfact');
+  ff.className = 'funfact';
+  ff.innerHTML = '';
+
+  const btn = document.getElementById('btn-next');
+  btn.className = 'btn-next';
+  btn.textContent = num === total ? 'Узнать результат 🎉' : 'Следующий вопрос →';
+
+  // Shuffle options but keep track of correct answer text
+  const correctText = q.options[q.correct];
+  const opts = shuffle(q.options.map((text, i) => ({ text, isCorrect: i === q.correct })));
+
+  const grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+
+  opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.innerHTML = `<span class="option-letter">${letters[i]}</span><span>${opt.text}</span>`;
+    btn.onclick = () => selectOption(btn, opt.isCorrect, q.fact, opts, letters);
+    grid.appendChild(btn);
+  });
+
+  // Animate card
+  const card = document.getElementById('quiz-card');
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = 'fadein 0.4s ease';
+}
+
+function selectOption(clicked, isCorrect, fact, opts, letters) {
+  if (answered) return;
+  answered = true;
+
+  // Mark all options
+  const allOpts = document.querySelectorAll('.option');
+  allOpts.forEach((btn, i) => {
+    btn.disabled = true;
+    if (opts[i].isCorrect) btn.classList.add('correct');
+    else if (btn === clicked && !isCorrect) btn.classList.add('wrong');
+  });
+
+  if (isCorrect) {
+    score++;
+    document.getElementById('score-display').textContent = score;
+  }
+
+  // Show fact
+  const ff = document.getElementById('funfact');
+  ff.innerHTML = `💡 ${fact}`;
+  ff.classList.add('show');
+
+  document.getElementById('btn-next').classList.add('show');
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= shuffledQuestions.length) {
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResult() {
+  document.getElementById('quiz-screen').classList.add('hide');
+  const rs = document.getElementById('result-screen');
+  rs.classList.add('show');
+
+  const total = shuffledQuestions.length;
+  const pct = score / total;
+
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('final-total').textContent = total;
+
+  let emoji, title, sub;
+  if (pct === 1)       { emoji = '🏆'; title = 'ЛЕГЕНДА!'; sub = 'Идеальный результат. Ты — энциклопедия.'; }
+  else if (pct >= 0.8) { emoji = '🧠'; title = 'Отлично!'; sub = 'Очень сильный результат. Почти безупречно.'; }
+  else if (pct >= 0.6) { emoji = '🔥'; title = 'Хорошо!'; sub = 'Ты знаешь больше среднего. Так держать!'; }
+  else if (pct >= 0.4) { emoji = '🤔'; title = 'Неплохо'; sub = 'Есть куда расти — но начало положено!'; }
+  else                 { emoji = '💀'; title = 'Упс...'; sub = 'Зато теперь ты знаешь много нового!'; }
+
+  document.getElementById('result-emoji').textContent = emoji;
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-sub').textContent = sub;
+
+  if (pct >= 0.8) launchConfetti();
+}
+
+function restartQuiz() {
+  document.getElementById('result-screen').classList.remove('show');
+  document.getElementById('quiz-screen').classList.remove('hide');
+  startQuiz();
+}
+
+function launchConfetti() {
+  const colors = ['#f0e040','#ff4e6a','#2ddd8a','#4eb8ff','#bf6dff'];
+  for (let i = 0; i < 80; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+    el.style.animationDelay = (Math.random() * 0.8) + 's';
+    el.style.width = (6 + Math.random() * 8) + 'px';
+    el.style.height = (6 + Math.random() * 8) + 'px';
+    document.body.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+}
+
+startQuiz();
+</script>
+</body>
+</html>
