@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --bg: #14110f;
@@ -15,7 +16,6 @@
     --gold: #d9a441;
     --gold-dim: #8a6a30;
     --red: #8a3a35;
-    --red-dim: #4d2521;
     --text: #f3ede3;
     --muted: #9c9186;
     --radius: 3px;
@@ -32,299 +32,141 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  .wrap {
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 48px 20px 100px;
-  }
+  .wrap { max-width: 700px; margin: 0 auto; padding: 48px 20px 100px; }
 
-  header {
-    margin-bottom: 40px;
-  }
+  header { margin-bottom: 20px; }
 
   h1 {
     font-family: 'Fraunces', serif;
     font-weight: 500;
     font-size: 2.4rem;
-    margin: 0 0 6px;
+    margin: 0 0 8px;
     letter-spacing: -0.01em;
   }
 
   .sub {
     color: var(--muted);
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     margin: 0;
-  }
-
-  /* toolbar */
-  .toolbar {
     display: flex;
-    gap: 10px;
-    margin: 32px 0 24px;
-    flex-wrap: wrap;
     align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
   }
+  .sub .dot { color: var(--border); }
+  .linklike {
+    background: none; border: none; padding: 0;
+    color: var(--gold-dim); text-decoration: underline; text-underline-offset: 3px;
+    font-size: 0.85rem; cursor: pointer; font-family: inherit;
+  }
+  .linklike:hover { color: var(--gold); }
+  #syncStatus.ok { color: var(--gold-dim); }
+  #syncStatus.err { color: var(--red); }
 
-  .toolbar input[type="text"] {
-    flex: 1;
-    min-width: 160px;
+  .tabs { display: flex; gap: 6px; margin: 20px 0 0; }
+  .tab-btn {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    padding: 7px 14px; font-size: 0.85rem; border-radius: var(--radius);
   }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--text); border-color: var(--gold-dim); background: var(--surface); }
+
+  .toolbar { display: flex; gap: 10px; margin: 24px 0 24px; flex-wrap: wrap; align-items: center; }
+  .toolbar input[type="text"] { flex: 1; min-width: 140px; }
 
   select, input[type="text"], input[type="number"] {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: inherit;
-    font-size: 0.9rem;
-    padding: 9px 12px;
-    border-radius: var(--radius);
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    font-family: inherit; font-size: 0.9rem; padding: 9px 12px; border-radius: var(--radius);
   }
-
-  select:focus, input:focus, textarea:focus, button:focus-visible {
-    outline: 2px solid var(--gold);
-    outline-offset: 1px;
-  }
-
-  button {
-    font-family: inherit;
-    cursor: pointer;
-    border-radius: var(--radius);
-  }
+  select:focus, input:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+  button { font-family: inherit; cursor: pointer; border-radius: var(--radius); }
 
   .btn-add {
-    background: var(--gold);
-    border: 1px solid var(--gold);
-    color: #1a1510;
-    font-weight: 600;
-    padding: 9px 18px;
-    font-size: 0.9rem;
-    white-space: nowrap;
+    background: var(--gold); border: 1px solid var(--gold); color: #1a1510;
+    font-weight: 600; padding: 9px 18px; font-size: 0.9rem; white-space: nowrap;
   }
   .btn-add:hover { background: #e8b656; }
 
-  /* movie list */
   .empty {
-    border: 1px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 40px 24px;
-    text-align: center;
-    color: var(--muted);
+    border: 1px dashed var(--border); border-radius: var(--radius);
+    padding: 40px 24px; text-align: center; color: var(--muted);
   }
-  .empty strong { color: var(--text); display:block; margin-bottom: 6px; font-family:'Fraunces', serif; font-size: 1.1rem; font-weight: 500;}
+  .empty strong { color: var(--text); display:block; margin-bottom: 6px; font-family:'Fraunces', serif; font-size: 1.1rem; font-weight: 500; }
 
-  .list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+  .list { display: flex; flex-direction: column; gap: 10px; }
 
   .card {
-    position: relative;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px 16px 30px;
-    overflow: hidden;
+    position: relative; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 18px 16px 30px; overflow: hidden;
   }
-
-  /* sprocket holes on the left edge, a nod to film stock */
   .card::before {
-    content: "";
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 14px;
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 14px;
     background-image: radial-gradient(circle at 7px 12px, var(--bg) 3px, transparent 3.5px);
-    background-size: 14px 24px;
-    background-repeat: repeat-y;
-    border-right: 1px solid var(--border);
+    background-size: 14px 24px; background-repeat: repeat-y; border-right: 1px solid var(--border);
   }
 
-  .card-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
   .card-title-block { min-width: 0; }
+  .card-title { font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 500; margin: 0; word-break: break-word; }
+  .card-meta { color: var(--muted); font-size: 0.82rem; }
+  .card-meta .type { color: var(--gold-dim); }
 
-  .card-title {
-    font-family: 'Fraunces', serif;
-    font-size: 1.2rem;
-    font-weight: 500;
-    margin: 0;
-    word-break: break-word;
-  }
-  .card-year { color: var(--muted); font-size: 0.85rem; }
-
-  .score {
-    display: flex;
-    align-items: baseline;
-    gap: 3px;
-    flex-shrink: 0;
-  }
-  .score .num {
-    font-family: 'Fraunces', serif;
-    font-size: 1.6rem;
-    font-weight: 600;
-    color: var(--gold);
-    line-height: 1;
-  }
+  .score { display: flex; align-items: baseline; gap: 3px; flex-shrink: 0; }
+  .score .num { font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 600; color: var(--gold); line-height: 1; }
   .score .max { color: var(--muted); font-size: 0.85rem; }
 
-  .criteria {
-    margin-top: 12px;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-
-  .crit-row {
-    display: grid;
-    grid-template-columns: 110px 1fr 28px;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.78rem;
-    color: var(--muted);
-  }
-
-  .crit-bar {
-    height: 5px;
-    background: var(--bg);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .crit-bar > span {
-    display: block;
-    height: 100%;
-    background: var(--gold-dim);
-  }
+  .criteria { margin-top: 12px; display: grid; grid-template-columns: 1fr; gap: 6px; }
+  .crit-row { display: grid; grid-template-columns: 110px 1fr 28px; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--muted); }
+  .crit-bar { height: 5px; background: var(--bg); border-radius: 2px; overflow: hidden; }
+  .crit-bar > span { display: block; height: 100%; background: var(--gold-dim); }
   .crit-val { text-align: right; color: var(--text); }
 
-  .card-note {
-    margin-top: 12px;
-    font-size: 0.88rem;
-    color: var(--muted);
-    white-space: pre-wrap;
-  }
+  .card-note { margin-top: 12px; font-size: 0.88rem; color: var(--muted); white-space: pre-wrap; }
 
-  .card-actions {
-    display: flex;
-    gap: 14px;
-    margin-top: 12px;
-  }
-  .card-actions button {
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-size: 0.8rem;
-    padding: 2px 0;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
+  .card-actions { display: flex; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
+  .card-actions button { background: none; border: none; color: var(--muted); font-size: 0.8rem; padding: 2px 0; text-decoration: underline; text-underline-offset: 3px; }
   .card-actions button:hover { color: var(--text); }
   .card-actions .del:hover { color: var(--red); }
 
-  /* modal / form */
   dialog {
-    background: var(--surface);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    max-width: 480px;
-    width: 92vw;
-    padding: 0;
+    background: var(--surface); color: var(--text); border: 1px solid var(--border);
+    border-radius: var(--radius); max-width: 480px; width: 92vw; padding: 0;
   }
   dialog::backdrop { background: rgba(10, 8, 6, 0.7); }
-
   .dlg-inner { padding: 24px; }
-
-  .dlg-inner h2 {
-    font-family: 'Fraunces', serif;
-    font-weight: 500;
-    font-size: 1.4rem;
-    margin: 0 0 20px;
-  }
+  .dlg-inner h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 1.4rem; margin: 0 0 20px; }
+  .dlg-inner p.hint { color: var(--muted); font-size: 0.82rem; margin: -10px 0 18px; }
 
   .field { margin-bottom: 16px; }
-  .field label {
-    display: block;
-    font-size: 0.82rem;
-    color: var(--muted);
-    margin-bottom: 6px;
-  }
-  .field input[type="text"], .field input[type="number"], .field textarea {
-    width: 100%;
-  }
+  .field label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; }
+  .field input[type="text"], .field input[type="number"], .field select, .field textarea { width: 100%; }
   .field textarea {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: inherit;
-    font-size: 0.9rem;
-    padding: 9px 12px;
-    border-radius: var(--radius);
-    resize: vertical;
-    min-height: 60px;
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    font-family: inherit; font-size: 0.9rem; padding: 9px 12px; border-radius: var(--radius);
+    resize: vertical; min-height: 60px;
   }
 
-  .slider-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .slider-row input[type="range"] {
-    flex: 1;
-    accent-color: var(--gold);
-  }
-  .slider-row .val {
-    width: 30px;
-    text-align: right;
-    font-variant-numeric: tabular-nums;
-    font-size: 0.9rem;
-  }
+  .slider-row { display: flex; align-items: center; gap: 12px; }
+  .slider-row input[type="range"] { flex: 1; accent-color: var(--gold); }
+  .slider-row .val { width: 30px; text-align: right; font-variant-numeric: tabular-nums; font-size: 0.9rem; }
 
-  .field.overall .slider-row .val {
-    font-family: 'Fraunces', serif;
-    font-size: 1.3rem;
-    color: var(--gold);
-    width: 40px;
+  .overall-preview {
+    display: flex; align-items: baseline; justify-content: space-between;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px 14px; margin-bottom: 18px; background: var(--bg);
   }
+  .overall-preview label { margin: 0; }
+  .overall-preview .num { font-family: 'Fraunces', serif; font-size: 1.5rem; color: var(--gold); }
 
-  .dlg-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 22px;
-  }
-  .btn-cancel {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    padding: 9px 16px;
-    font-size: 0.9rem;
-  }
+  .dlg-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+  .btn-cancel { background: none; border: 1px solid var(--border); color: var(--muted); padding: 9px 16px; font-size: 0.9rem; }
   .btn-cancel:hover { color: var(--text); border-color: var(--muted); }
-  .btn-save {
-    background: var(--gold);
-    border: 1px solid var(--gold);
-    color: #1a1510;
-    font-weight: 600;
-    padding: 9px 18px;
-    font-size: 0.9rem;
-  }
+  .btn-save { background: var(--gold); border: 1px solid var(--gold); color: #1a1510; font-weight: 600; padding: 9px 18px; font-size: 0.9rem; }
   .btn-save:hover { background: #e8b656; }
+  .btn-danger { background: none; border: 1px solid var(--red); color: var(--red); padding: 9px 16px; font-size: 0.85rem; margin-right: auto; }
+  .btn-danger:hover { background: var(--red); color: var(--text); }
 
-  footer {
-    margin-top: 48px;
-    text-align: center;
-    color: var(--border);
-    font-size: 0.75rem;
-  }
-
-  @media (max-width: 480px) {
-    .crit-row { grid-template-columns: 90px 1fr 26px; }
-  }
+  @media (max-width: 480px) { .crit-row { grid-template-columns: 90px 1fr 26px; } }
 </style>
 </head>
 <body>
@@ -332,28 +174,30 @@
 <div class="wrap">
   <header>
     <h1>Мои фильмы</h1>
-    <p class="sub">Личный список оценок — хранится только в этом браузере.</p>
+    <p class="sub">
+      <span id="syncStatus">Только в этом браузере</span>
+      <span class="dot">·</span>
+      <button class="linklike" id="openSync">синхронизация</button>
+    </p>
+    <div class="tabs" id="tabs">
+      <button class="tab-btn active" data-tab="watched">Смотрел</button>
+      <button class="tab-btn" data-tab="planned">Хочу посмотреть</button>
+    </div>
   </header>
 
   <div class="toolbar">
     <input type="text" id="search" placeholder="Поиск по названию…">
-    <select id="sort">
-      <option value="date_desc">Сначала новые</option>
-      <option value="score_desc">Сначала высокая оценка</option>
-      <option value="score_asc">Сначала низкая оценка</option>
-      <option value="title_asc">По названию А–Я</option>
-    </select>
-    <button class="btn-add" id="openAdd">+ Добавить фильм</button>
+    <select id="typeFilter"><option value="">Все типы</option></select>
+    <select id="sort"></select>
+    <button class="btn-add" id="openAddBtn">+ Добавить</button>
   </div>
 
   <div id="listArea"></div>
-
-  <footer>данные хранятся локально в этом браузере (localStorage)</footer>
 </div>
 
 <dialog id="dlg">
   <div class="dlg-inner">
-    <h2 id="dlgTitle">Новый фильм</h2>
+    <h2 id="dlgTitle">Новое</h2>
     <form id="form" method="dialog">
       <input type="hidden" id="movieId">
 
@@ -362,49 +206,43 @@
         <input type="text" id="title" required maxlength="120">
       </div>
 
-      <div class="field">
-        <label for="year">Год (необязательно)</label>
-        <input type="number" id="year" min="1888" max="2100" placeholder="напр. 1994">
-      </div>
-
-      <div class="field overall">
-        <label for="overall">Общая оценка</label>
-        <div class="slider-row">
-          <input type="range" id="overall" min="1" max="5" step="0.5" value="3">
-          <span class="val" id="overallVal">3</span>
+      <div class="field" style="display:flex; gap:12px;">
+        <div style="flex:1;">
+          <label for="type">Тип</label>
+          <select id="type">
+            <option value="movie">Фильм</option>
+            <option value="series">Сериал</option>
+            <option value="dorama">Дорама</option>
+            <option value="anime">Аниме</option>
+            <option value="other">Другое</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label for="year">Год</label>
+          <input type="number" id="year" min="1888" max="2100" placeholder="напр. 1994">
         </div>
       </div>
 
       <div class="field">
         <label>Сюжет</label>
-        <div class="slider-row">
-          <input type="range" class="crit-input" data-key="plot" min="1" max="5" step="0.5" value="3">
-          <span class="val">3</span>
-        </div>
+        <div class="slider-row"><input type="range" class="crit-input" data-key="plot" min="1" max="5" step="0.5" value="3"><span class="val">3</span></div>
       </div>
-
       <div class="field">
         <label>Актёрская игра</label>
-        <div class="slider-row">
-          <input type="range" class="crit-input" data-key="acting" min="1" max="5" step="0.5" value="3">
-          <span class="val">3</span>
-        </div>
+        <div class="slider-row"><input type="range" class="crit-input" data-key="acting" min="1" max="5" step="0.5" value="3"><span class="val">3</span></div>
       </div>
-
       <div class="field">
         <label>Визуал / графика</label>
-        <div class="slider-row">
-          <input type="range" class="crit-input" data-key="visuals" min="1" max="5" step="0.5" value="3">
-          <span class="val">3</span>
-        </div>
+        <div class="slider-row"><input type="range" class="crit-input" data-key="visuals" min="1" max="5" step="0.5" value="3"><span class="val">3</span></div>
       </div>
-
       <div class="field">
         <label>Атмосфера / музыка</label>
-        <div class="slider-row">
-          <input type="range" class="crit-input" data-key="atmosphere" min="1" max="5" step="0.5" value="3">
-          <span class="val">3</span>
-        </div>
+        <div class="slider-row"><input type="range" class="crit-input" data-key="atmosphere" min="1" max="5" step="0.5" value="3"><span class="val">3</span></div>
+      </div>
+
+      <div class="overall-preview">
+        <label>Общая оценка (среднее по критериям)</label>
+        <span class="num" id="overallPreview">3</span>
       </div>
 
       <div class="field">
@@ -420,103 +258,238 @@
   </div>
 </dialog>
 
+<dialog id="wDlg">
+  <div class="dlg-inner">
+    <h2 id="wDlgTitle">В список «хочу посмотреть»</h2>
+    <form id="wForm" method="dialog">
+      <input type="hidden" id="wId">
+      <div class="field">
+        <label for="wTitle">Название</label>
+        <input type="text" id="wTitle" required maxlength="120">
+      </div>
+      <div class="field" style="display:flex; gap:12px;">
+        <div style="flex:1;">
+          <label for="wType">Тип</label>
+          <select id="wType">
+            <option value="movie">Фильм</option>
+            <option value="series">Сериал</option>
+            <option value="dorama">Дорама</option>
+            <option value="anime">Аниме</option>
+            <option value="other">Другое</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label for="wYear">Год</label>
+          <input type="number" id="wYear" min="1888" max="2100">
+        </div>
+      </div>
+      <div class="field">
+        <label for="wNote">Заметка (необязательно)</label>
+        <textarea id="wNote" maxlength="500" placeholder="Откуда рекомендация, почему хочется посмотреть…"></textarea>
+      </div>
+      <div class="dlg-actions">
+        <button type="button" class="btn-cancel" id="wCancelBtn">Отмена</button>
+        <button type="submit" class="btn-save">Сохранить</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<dialog id="syncDlg">
+  <div class="dlg-inner">
+    <h2>Синхронизация между устройствами</h2>
+    <p class="hint">Нужен бесплатный проект Supabase — инструкция в README репозитория. Вставьте сюда URL и anon key проекта.</p>
+    <form id="syncForm" method="dialog">
+      <div class="field">
+        <label for="sbUrl">Supabase URL</label>
+        <input type="text" id="sbUrl" placeholder="https://xxxx.supabase.co">
+      </div>
+      <div class="field">
+        <label for="sbKey">Supabase anon key</label>
+        <input type="text" id="sbKey" placeholder="eyJhbGciOi...">
+      </div>
+      <div class="dlg-actions">
+        <button type="button" class="btn-danger" id="syncOff">Отключить</button>
+        <button type="button" class="btn-cancel" id="syncCancel">Отмена</button>
+        <button type="submit" class="btn-save">Сохранить и подключить</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
 <script>
 (function(){
   const STORAGE_KEY = 'movie-rater:movies';
+  const WATCHLIST_KEY = 'movie-rater:watchlist';
+  const CONFIG_KEY = 'movie-rater:sync';
+
   const CRITERIA = [
     { key: 'plot', label: 'Сюжет' },
     { key: 'acting', label: 'Актёрская игра' },
     { key: 'visuals', label: 'Визуал' },
     { key: 'atmosphere', label: 'Атмосфера / музыка' }
   ];
+  const TYPES = [
+    { key: 'movie', label: 'Фильм' },
+    { key: 'series', label: 'Сериал' },
+    { key: 'dorama', label: 'Дорама' },
+    { key: 'anime', label: 'Аниме' },
+    { key: 'other', label: 'Другое' }
+  ];
+  const typeLabel = key => (TYPES.find(t => t.key === key) || TYPES[0]).label;
 
   const listArea = document.getElementById('listArea');
   const dlg = document.getElementById('dlg');
   const form = document.getElementById('form');
   const dlgTitle = document.getElementById('dlgTitle');
+  const wDlg = document.getElementById('wDlg');
+  const wForm = document.getElementById('wForm');
   const searchInput = document.getElementById('search');
   const sortSelect = document.getElementById('sort');
+  const typeFilter = document.getElementById('typeFilter');
+  const openAddBtn = document.getElementById('openAddBtn');
 
-  function load() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      console.error('Не удалось прочитать сохранённые данные', e);
-      return [];
+  TYPES.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.key; opt.textContent = t.label;
+    typeFilter.appendChild(opt);
+  });
+
+  let activeTab = 'watched';
+  let convertingPlannedId = null;
+
+  function updateSortOptions() {
+    if (activeTab === 'watched') {
+      sortSelect.innerHTML = `<option value="date_desc">Сначала новые</option><option value="score_desc">Сначала высокая оценка</option><option value="score_asc">Сначала низкая оценка</option><option value="title_asc">По названию А–Я</option>`;
+    } else {
+      sortSelect.innerHTML = `<option value="date_desc">Сначала новые</option><option value="title_asc">По названию А–Я</option>`;
     }
   }
 
-  function save(movies) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(movies));
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeTab = btn.getAttribute('data-tab');
+      updateSortOptions();
+      openAddBtn.textContent = activeTab === 'watched' ? '+ Добавить' : '+ В список';
+      render();
+    });
+  });
+
+  function loadList(key) {
+    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : []; }
+    catch (e) { console.error('Не удалось прочитать сохранённые данные', e); return []; }
+  }
+  const save = list => localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  const savePlanned = list => localStorage.setItem(WATCHLIST_KEY, JSON.stringify(list));
+
+  let movies = loadList(STORAGE_KEY);
+  let planned = loadList(WATCHLIST_KEY);
+
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  function computeOverall(criteria) {
+    const vals = CRITERIA.map(c => (criteria && criteria[c.key] != null) ? Number(criteria[c.key]) : 3);
+    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    return Math.round(avg * 2) / 2;
   }
 
-  let movies = load();
+  function escapeHtml(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
 
-  function uid() {
-    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  }
+  function render() { activeTab === 'watched' ? renderWatched() : renderPlanned(); }
 
-  function render() {
+  function renderWatched() {
     const query = searchInput.value.trim().toLowerCase();
     const sortMode = sortSelect.value;
+    const typeF = typeFilter.value;
 
-    let items = movies.filter(m => m.title.toLowerCase().includes(query));
-
+    let items = movies.filter(m => m.title.toLowerCase().includes(query) && (!typeF || (m.type || 'movie') === typeF));
     items.sort((a, b) => {
-      if (sortMode === 'score_desc') return b.overall - a.overall;
-      if (sortMode === 'score_asc') return a.overall - b.overall;
+      if (sortMode === 'score_desc') return computeOverall(b.criteria) - computeOverall(a.criteria);
+      if (sortMode === 'score_asc') return computeOverall(a.criteria) - computeOverall(b.criteria);
       if (sortMode === 'title_asc') return a.title.localeCompare(b.title, 'ru');
-      return b.createdAt - a.createdAt; // date_desc default
+      return (b.createdAt || 0) - (a.createdAt || 0);
     });
 
     if (items.length === 0) {
       listArea.innerHTML = movies.length === 0
-        ? `<div class="empty"><strong>Список пуст</strong>Добавьте первый фильм, который посмотрели.</div>`
-        : `<div class="empty">Ничего не найдено по запросу «${escapeHtml(searchInput.value)}»</div>`;
+        ? `<div class="empty"><strong>Список пуст</strong>Добавьте первое, что посмотрели.</div>`
+        : `<div class="empty">Ничего не найдено.</div>`;
       return;
     }
 
     listArea.innerHTML = `<div class="list">${items.map(cardHtml).join('')}</div>`;
-
-    listArea.querySelectorAll('[data-edit]').forEach(btn => {
-      btn.addEventListener('click', () => openEdit(btn.getAttribute('data-edit')));
-    });
-    listArea.querySelectorAll('[data-del]').forEach(btn => {
-      btn.addEventListener('click', () => removeMovie(btn.getAttribute('data-del')));
-    });
+    listArea.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => openEdit(btn.getAttribute('data-edit'))));
+    listArea.querySelectorAll('[data-del]').forEach(btn => btn.addEventListener('click', () => removeMovie(btn.getAttribute('data-del'))));
   }
 
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+  function renderPlanned() {
+    const query = searchInput.value.trim().toLowerCase();
+    const sortMode = sortSelect.value;
+    const typeF = typeFilter.value;
+
+    let items = planned.filter(w => w.title.toLowerCase().includes(query) && (!typeF || (w.type || 'movie') === typeF));
+    items.sort((a, b) => {
+      if (sortMode === 'title_asc') return a.title.localeCompare(b.title, 'ru');
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
+
+    if (items.length === 0) {
+      listArea.innerHTML = planned.length === 0
+        ? `<div class="empty"><strong>Список пуст</strong>Добавьте то, что хочется посмотреть.</div>`
+        : `<div class="empty">Ничего не найдено.</div>`;
+      return;
+    }
+
+    listArea.innerHTML = `<div class="list">${items.map(plannedCardHtml).join('')}</div>`;
+    listArea.querySelectorAll('[data-watch]').forEach(btn => btn.addEventListener('click', () => markWatched(btn.getAttribute('data-watch'))));
+    listArea.querySelectorAll('[data-wedit]').forEach(btn => btn.addEventListener('click', () => openEditPlanned(btn.getAttribute('data-wedit'))));
+    listArea.querySelectorAll('[data-wdel]').forEach(btn => btn.addEventListener('click', () => removePlanned(btn.getAttribute('data-wdel'))));
   }
 
   function cardHtml(m) {
+    const overall = computeOverall(m.criteria);
     const critRows = CRITERIA.map(c => {
       const v = m.criteria && m.criteria[c.key] != null ? m.criteria[c.key] : 0;
       const pct = (v / 5) * 100;
-      return `<div class="crit-row">
-        <span>${c.label}</span>
-        <span class="crit-bar"><span style="width:${pct}%"></span></span>
-        <span class="crit-val">${v}</span>
-      </div>`;
+      return `<div class="crit-row"><span>${c.label}</span><span class="crit-bar"><span style="width:${pct}%"></span></span><span class="crit-val">${v}</span></div>`;
     }).join('');
+    const metaParts = [`<span class="type">${typeLabel(m.type)}</span>`];
+    if (m.year) metaParts.push(m.year);
 
     return `<div class="card">
       <div class="card-top">
         <div class="card-title-block">
           <p class="card-title">${escapeHtml(m.title)}</p>
-          ${m.year ? `<span class="card-year">${m.year}</span>` : ''}
+          <span class="card-meta">${metaParts.join(' · ')}</span>
         </div>
-        <div class="score"><span class="num">${m.overall}</span><span class="max">/5</span></div>
+        <div class="score"><span class="num">${overall}</span><span class="max">/5</span></div>
       </div>
       <div class="criteria">${critRows}</div>
       ${m.note ? `<div class="card-note">${escapeHtml(m.note)}</div>` : ''}
       <div class="card-actions">
         <button data-edit="${m.id}">Изменить</button>
         <button class="del" data-del="${m.id}">Удалить</button>
+      </div>
+    </div>`;
+  }
+
+  function plannedCardHtml(w) {
+    const metaParts = [`<span class="type">${typeLabel(w.type)}</span>`];
+    if (w.year) metaParts.push(w.year);
+    return `<div class="card">
+      <div class="card-top">
+        <div class="card-title-block">
+          <p class="card-title">${escapeHtml(w.title)}</p>
+          <span class="card-meta">${metaParts.join(' · ')}</span>
+        </div>
+      </div>
+      ${w.note ? `<div class="card-note">${escapeHtml(w.note)}</div>` : ''}
+      <div class="card-actions">
+        <button data-watch="${w.id}">Посмотрел(а) →</button>
+        <button data-wedit="${w.id}">Изменить</button>
+        <button class="del" data-wdel="${w.id}">Удалить</button>
       </div>
     </div>`;
   }
@@ -528,36 +501,49 @@
     movies = movies.filter(x => x.id !== id);
     save(movies);
     render();
+    deleteMovieCloud(id);
   }
 
-  // --- dialog / form ---
+  function removePlanned(id) {
+    const w = planned.find(x => x.id === id);
+    if (!w) return;
+    if (!confirm(`Удалить «${w.title}» из списка «хочу посмотреть»?`)) return;
+    planned = planned.filter(x => x.id !== id);
+    savePlanned(planned);
+    render();
+    deletePlannedCloud(id);
+  }
 
-  const overallInput = document.getElementById('overall');
-  const overallVal = document.getElementById('overallVal');
-  overallInput.addEventListener('input', () => overallVal.textContent = overallInput.value);
-
+  // --- watched dialog ---
   document.querySelectorAll('.crit-input').forEach(inp => {
     const valSpan = inp.parentElement.querySelector('.val');
-    inp.addEventListener('input', () => valSpan.textContent = inp.value);
+    inp.addEventListener('input', () => { valSpan.textContent = inp.value; updateOverallPreview(); });
   });
 
-  document.getElementById('openAdd').addEventListener('click', () => openAdd());
-  document.getElementById('cancelBtn').addEventListener('click', () => dlg.close());
+  function updateOverallPreview() {
+    const criteria = {};
+    document.querySelectorAll('.crit-input').forEach(inp => criteria[inp.dataset.key] = parseFloat(inp.value));
+    document.getElementById('overallPreview').textContent = computeOverall(criteria);
+  }
+
+  document.getElementById('cancelBtn').addEventListener('click', () => { convertingPlannedId = null; dlg.close(); });
 
   function resetForm() {
     form.reset();
     document.getElementById('movieId').value = '';
-    overallInput.value = 3;
-    overallVal.textContent = '3';
-    document.querySelectorAll('.crit-input').forEach(inp => {
-      inp.value = 3;
-      inp.parentElement.querySelector('.val').textContent = '3';
-    });
+    document.getElementById('type').value = 'movie';
+    document.querySelectorAll('.crit-input').forEach(inp => { inp.value = 3; inp.parentElement.querySelector('.val').textContent = '3'; });
+    updateOverallPreview();
   }
 
-  function openAdd() {
+  function openAdd(prefill) {
     resetForm();
-    dlgTitle.textContent = 'Новый фильм';
+    dlgTitle.textContent = prefill ? 'Отметить просмотренным' : 'Новое';
+    if (prefill) {
+      document.getElementById('title').value = prefill.title || '';
+      document.getElementById('type').value = prefill.type || 'movie';
+      document.getElementById('year').value = prefill.year || '';
+    }
     dlg.showModal();
     document.getElementById('title').focus();
   }
@@ -565,22 +551,29 @@
   function openEdit(id) {
     const m = movies.find(x => x.id === id);
     if (!m) return;
+    convertingPlannedId = null;
     resetForm();
-    dlgTitle.textContent = 'Изменить фильм';
+    dlgTitle.textContent = 'Изменить';
     document.getElementById('movieId').value = m.id;
     document.getElementById('title').value = m.title;
+    document.getElementById('type').value = m.type || 'movie';
     document.getElementById('year').value = m.year || '';
     document.getElementById('note').value = m.note || '';
-    overallInput.value = m.overall;
-    overallVal.textContent = m.overall;
     document.querySelectorAll('.crit-input').forEach(inp => {
       const key = inp.getAttribute('data-key');
       const v = m.criteria && m.criteria[key] != null ? m.criteria[key] : 3;
-      inp.value = v;
-      inp.parentElement.querySelector('.val').textContent = v;
+      inp.value = v; inp.parentElement.querySelector('.val').textContent = v;
     });
+    updateOverallPreview();
     dlg.showModal();
     document.getElementById('title').focus();
+  }
+
+  function markWatched(id) {
+    const w = planned.find(x => x.id === id);
+    if (!w) return;
+    convertingPlannedId = id;
+    openAdd({ title: w.title, type: w.type, year: w.year });
   }
 
   form.addEventListener('submit', (e) => {
@@ -589,33 +582,209 @@
 
     const id = document.getElementById('movieId').value;
     const criteria = {};
-    document.querySelectorAll('.crit-input').forEach(inp => {
-      criteria[inp.getAttribute('data-key')] = parseFloat(inp.value);
-    });
+    document.querySelectorAll('.crit-input').forEach(inp => criteria[inp.getAttribute('data-key')] = parseFloat(inp.value));
 
     const data = {
       title,
+      type: document.getElementById('type').value,
       year: document.getElementById('year').value ? parseInt(document.getElementById('year').value, 10) : null,
-      overall: parseFloat(overallInput.value),
       criteria,
       note: document.getElementById('note').value.trim()
     };
 
+    let record;
     if (id) {
       const idx = movies.findIndex(x => x.id === id);
-      if (idx !== -1) movies[idx] = { ...movies[idx], ...data };
+      if (idx !== -1) { movies[idx] = { ...movies[idx], ...data }; record = movies[idx]; }
     } else {
-      movies.push({ id: uid(), createdAt: Date.now(), ...data });
+      record = { id: uid(), createdAt: Date.now(), ...data };
+      movies.push(record);
     }
 
     save(movies);
+    if (record) pushMovie(record);
+
+    if (!id && convertingPlannedId) {
+      const pid = convertingPlannedId;
+      convertingPlannedId = null;
+      planned = planned.filter(x => x.id !== pid);
+      savePlanned(planned);
+      deletePlannedCloud(pid);
+    }
     render();
+  });
+
+  // --- planned dialog ---
+  document.getElementById('wCancelBtn').addEventListener('click', () => wDlg.close());
+
+  function resetWForm() {
+    wForm.reset();
+    document.getElementById('wId').value = '';
+    document.getElementById('wType').value = 'movie';
+  }
+
+  function openAddPlanned() {
+    resetWForm();
+    document.getElementById('wDlgTitle').textContent = 'В список «хочу посмотреть»';
+    wDlg.showModal();
+    document.getElementById('wTitle').focus();
+  }
+
+  function openEditPlanned(id) {
+    const w = planned.find(x => x.id === id);
+    if (!w) return;
+    resetWForm();
+    document.getElementById('wDlgTitle').textContent = 'Изменить';
+    document.getElementById('wId').value = w.id;
+    document.getElementById('wTitle').value = w.title;
+    document.getElementById('wType').value = w.type || 'movie';
+    document.getElementById('wYear').value = w.year || '';
+    document.getElementById('wNote').value = w.note || '';
+    wDlg.showModal();
+    document.getElementById('wTitle').focus();
+  }
+
+  wForm.addEventListener('submit', (e) => {
+    const title = document.getElementById('wTitle').value.trim();
+    if (!title) { e.preventDefault(); return; }
+    const id = document.getElementById('wId').value;
+    const data = {
+      title,
+      type: document.getElementById('wType').value,
+      year: document.getElementById('wYear').value ? parseInt(document.getElementById('wYear').value, 10) : null,
+      note: document.getElementById('wNote').value.trim()
+    };
+    let record;
+    if (id) {
+      const idx = planned.findIndex(x => x.id === id);
+      if (idx !== -1) { planned[idx] = { ...planned[idx], ...data }; record = planned[idx]; }
+    } else {
+      record = { id: uid(), createdAt: Date.now(), ...data };
+      planned.push(record);
+    }
+    savePlanned(planned);
+    render();
+    if (record) pushPlanned(record);
+  });
+
+  document.getElementById('openAddBtn').addEventListener('click', () => {
+    if (activeTab === 'watched') { convertingPlannedId = null; openAdd(); }
+    else openAddPlanned();
   });
 
   searchInput.addEventListener('input', render);
   sortSelect.addEventListener('change', render);
+  typeFilter.addEventListener('change', render);
 
+  // --- cloud sync (Supabase) ---
+  let sb = null;
+
+  function getSyncConfig() { try { return JSON.parse(localStorage.getItem(CONFIG_KEY) || 'null'); } catch (e) { return null; } }
+  function setSyncConfig(cfg) { localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); }
+  function setStatus(text, cls) { const el = document.getElementById('syncStatus'); el.textContent = text; el.className = cls || ''; }
+
+  function toRow(m) {
+    const c = m.criteria || {};
+    return { id: m.id, title: m.title, year: m.year || null, type: m.type || 'movie',
+      plot: c.plot ?? null, acting: c.acting ?? null, visuals: c.visuals ?? null, atmosphere: c.atmosphere ?? null,
+      note: m.note || '', created_at: m.createdAt || Date.now() };
+  }
+  function fromRow(r) {
+    return { id: r.id, title: r.title, year: r.year, type: r.type || 'movie',
+      criteria: { plot: r.plot, acting: r.acting, visuals: r.visuals, atmosphere: r.atmosphere },
+      note: r.note || '', createdAt: r.created_at };
+  }
+  function toRowP(w) {
+    return { id: w.id, title: w.title, year: w.year || null, type: w.type || 'movie', note: w.note || '', created_at: w.createdAt || Date.now() };
+  }
+  function fromRowP(r) {
+    return { id: r.id, title: r.title, year: r.year, type: r.type || 'movie', note: r.note || '', createdAt: r.created_at };
+  }
+
+  async function pushMovie(m) {
+    if (!sb) return;
+    try { const { error } = await sb.from('movies').upsert(toRow(m)); if (error) throw error; setStatus('Синхронизировано', 'ok'); }
+    catch (e) { console.error(e); setStatus('Ошибка синхронизации', 'err'); }
+  }
+  async function deleteMovieCloud(id) {
+    if (!sb) return;
+    try { const { error } = await sb.from('movies').delete().eq('id', id); if (error) throw error; }
+    catch (e) { console.error(e); setStatus('Ошибка синхронизации', 'err'); }
+  }
+  async function pushPlanned(w) {
+    if (!sb) return;
+    try { const { error } = await sb.from('watchlist').upsert(toRowP(w)); if (error) throw error; setStatus('Синхронизировано', 'ok'); }
+    catch (e) { console.error(e); setStatus('Ошибка синхронизации', 'err'); }
+  }
+  async function deletePlannedCloud(id) {
+    if (!sb) return;
+    try { const { error } = await sb.from('watchlist').delete().eq('id', id); if (error) throw error; }
+    catch (e) { console.error(e); setStatus('Ошибка синхронизации', 'err'); }
+  }
+
+  async function syncMoviesTable() {
+    const { data, error } = await sb.from('movies').select('*');
+    if (error) throw error;
+    const cloudRows = data || [];
+    const cloudIds = new Set(cloudRows.map(r => r.id));
+    const toPush = movies.filter(m => !cloudIds.has(m.id));
+    for (const m of toPush) { await sb.from('movies').upsert(toRow(m)); }
+    const localIds = new Set(movies.map(m => m.id));
+    cloudRows.forEach(row => { if (!localIds.has(row.id)) movies.push(fromRow(row)); });
+    save(movies);
+  }
+  async function syncPlannedTable() {
+    const { data, error } = await sb.from('watchlist').select('*');
+    if (error) throw error;
+    const cloudRows = data || [];
+    const cloudIds = new Set(cloudRows.map(r => r.id));
+    const toPush = planned.filter(w => !cloudIds.has(w.id));
+    for (const w of toPush) { await sb.from('watchlist').upsert(toRowP(w)); }
+    const localIds = new Set(planned.map(w => w.id));
+    cloudRows.forEach(row => { if (!localIds.has(row.id)) planned.push(fromRowP(row)); });
+    savePlanned(planned);
+  }
+  async function syncNow() {
+    if (!sb) return;
+    setStatus('Синхронизация…');
+    try { await syncMoviesTable(); await syncPlannedTable(); render(); setStatus('Синхронизировано', 'ok'); }
+    catch (e) { console.error(e); setStatus('Ошибка синхронизации', 'err'); }
+  }
+
+  function initSupabase() {
+    const cfg = getSyncConfig();
+    if (cfg && cfg.url && cfg.key && window.supabase) {
+      try { sb = window.supabase.createClient(cfg.url, cfg.key); syncNow(); }
+      catch (e) { console.error(e); sb = null; setStatus('Только в этом браузере'); }
+    } else { sb = null; setStatus('Только в этом браузере'); }
+  }
+
+  const syncDlg = document.getElementById('syncDlg');
+  const syncForm = document.getElementById('syncForm');
+  document.getElementById('openSync').addEventListener('click', () => {
+    const cfg = getSyncConfig();
+    document.getElementById('sbUrl').value = (cfg && cfg.url) || '';
+    document.getElementById('sbKey').value = (cfg && cfg.key) || '';
+    syncDlg.showModal();
+  });
+  document.getElementById('syncCancel').addEventListener('click', () => syncDlg.close());
+  document.getElementById('syncOff').addEventListener('click', () => {
+    localStorage.removeItem(CONFIG_KEY);
+    sb = null;
+    setStatus('Только в этом браузере');
+    syncDlg.close();
+  });
+  syncForm.addEventListener('submit', () => {
+    const url = document.getElementById('sbUrl').value.trim();
+    const key = document.getElementById('sbKey').value.trim();
+    if (!url || !key) return;
+    setSyncConfig({ url, key });
+    initSupabase();
+  });
+
+  updateSortOptions();
   render();
+  initSupabase();
 })();
 </script>
 
