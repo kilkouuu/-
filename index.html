@@ -228,8 +228,16 @@
         <div class="slider-row"><input type="range" class="crit-input" data-key="plot" min="1" max="5" step="0.5" value="3"><span class="val">3</span></div>
       </div>
       <div class="field">
+        <label>Сценарий / диалоги</label>
+        <div class="slider-row"><input type="range" class="crit-input" data-key="script" min="1" max="5" step="0.5" value="3"><span class="val">3</span></div>
+      </div>
+      <div class="field">
         <label>Актёрская игра</label>
         <div class="slider-row"><input type="range" class="crit-input" data-key="acting" min="1" max="5" step="0.5" value="3"><span class="val">3</span></div>
+      </div>
+      <div class="field">
+        <label>Режиссура</label>
+        <div class="slider-row"><input type="range" class="crit-input" data-key="direction" min="1" max="5" step="0.5" value="3"><span class="val">3</span></div>
       </div>
       <div class="field">
         <label>Визуал / графика</label>
@@ -238,6 +246,14 @@
       <div class="field">
         <label>Атмосфера / музыка</label>
         <div class="slider-row"><input type="range" class="crit-input" data-key="atmosphere" min="1" max="5" step="0.5" value="3"><span class="val">3</span></div>
+      </div>
+      <div class="field">
+        <label>Темп повествования</label>
+        <div class="slider-row"><input type="range" class="crit-input" data-key="pacing" min="1" max="5" step="0.5" value="3"><span class="val">3</span></div>
+      </div>
+      <div class="field">
+        <label>Хочется пересмотреть</label>
+        <div class="slider-row"><input type="range" class="crit-input" data-key="rewatch" min="1" max="5" step="0.5" value="3"><span class="val">3</span></div>
       </div>
 
       <div class="overall-preview">
@@ -325,9 +341,13 @@
 
   const CRITERIA = [
     { key: 'plot', label: 'Сюжет' },
+    { key: 'script', label: 'Сценарий / диалоги' },
     { key: 'acting', label: 'Актёрская игра' },
+    { key: 'direction', label: 'Режиссура' },
     { key: 'visuals', label: 'Визуал' },
-    { key: 'atmosphere', label: 'Атмосфера / музыка' }
+    { key: 'atmosphere', label: 'Атмосфера / музыка' },
+    { key: 'pacing', label: 'Темп повествования' },
+    { key: 'rewatch', label: 'Хочется пересмотреть' }
   ];
   const TYPES = [
     { key: 'movie', label: 'Фильм' },
@@ -686,12 +706,14 @@
   function toRow(m) {
     const c = m.criteria || {};
     return { id: m.id, title: m.title, year: m.year || null, type: m.type || 'movie',
-      plot: c.plot ?? null, acting: c.acting ?? null, visuals: c.visuals ?? null, atmosphere: c.atmosphere ?? null,
+      plot: c.plot ?? null, script: c.script ?? null, acting: c.acting ?? null, direction: c.direction ?? null,
+      visuals: c.visuals ?? null, atmosphere: c.atmosphere ?? null, pacing: c.pacing ?? null, rewatch: c.rewatch ?? null,
       note: m.note || '', created_at: m.createdAt || Date.now() };
   }
   function fromRow(r) {
     return { id: r.id, title: r.title, year: r.year, type: r.type || 'movie',
-      criteria: { plot: r.plot, acting: r.acting, visuals: r.visuals, atmosphere: r.atmosphere },
+      criteria: { plot: r.plot, script: r.script, acting: r.acting, direction: r.direction,
+        visuals: r.visuals, atmosphere: r.atmosphere, pacing: r.pacing, rewatch: r.rewatch },
       note: r.note || '', createdAt: r.created_at };
   }
   function toRowP(w) {
